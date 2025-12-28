@@ -3,11 +3,13 @@ package notemgr
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"terminal-notes/notes"
 )
 
 type NoteManager interface {
 	ReadNote(noteName string) (*notes.Note, error)
+	EditNote(noteName string) error
 }
 
 type fileNoteManager struct {
@@ -19,8 +21,7 @@ func NewNoteManager(rootDir string) NoteManager {
 }
 
 func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
-	noteFileName := mgr.formatNoteFileName(noteName)
-	noteFilePath := mgr.notesRootDir + noteFileName
+	noteFilePath := mgr.getNoteFilePath(noteName)
 
 	noteFile, err := os.ReadFile(noteFilePath)
 	if err != nil {
@@ -35,6 +36,20 @@ func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
 	return &note, nil
 }
 
-func (nr *fileNoteManager) formatNoteFileName(noteName string) string {
-	return noteName + ".md"
+func (mgr *fileNoteManager) EditNote(noteName string) error {
+	noteFilePath := mgr.getNoteFilePath(noteName)
+
+	cmd := exec.Command("vim", noteFilePath)
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("Unable to edit file %s: %s", noteFilePath, err)
+	}
+	return nil
+}
+
+func (mgr *fileNoteManager) getNoteFilePath(noteName string) string {
+	noteFileName := noteName + ".md"
+	return mgr.notesRootDir + noteFileName
 }

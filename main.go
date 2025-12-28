@@ -15,6 +15,8 @@ func main() {
 
 	noteManager := notemgr.NewNoteManager(NOTES_DIR)
 
+	edit := flag.Bool("e", false, "Edit target note")
+
 	flag.Parse()
 
 	args := flag.Args()
@@ -26,11 +28,19 @@ func main() {
 
 	noteName := args[0]
 
-	note, err := noteManager.ReadNote(noteName)
-	if err != nil {
-		fmt.Printf("Error opening note for %s: %s\n", noteName, err.Error())
-		return
+	if edit != nil && *edit {
+		err := noteManager.EditNote(noteName)
+		if err != nil {
+			fmt.Printf("Error editing note %s: %s\n", noteName, err.Error())
+			return
+		}
+		fmt.Printf("Updated note %s\n", noteName)
+	} else {
+		note, err := noteManager.ReadNote(noteName)
+		if err != nil {
+			fmt.Printf("Error opening note %s: %s\n", noteName, err.Error())
+			return
+		}
+		fmt.Println(note.Contents)
 	}
-
-	fmt.Println(note.Contents)
 }
