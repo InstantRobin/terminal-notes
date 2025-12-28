@@ -1,4 +1,4 @@
-package reader
+package notemgr
 
 import (
 	"fmt"
@@ -6,21 +6,21 @@ import (
 	"terminal-notes/notes"
 )
 
-type NoteReader interface {
+type NoteManager interface {
 	ReadNote(noteName string) (*notes.Note, error)
 }
 
-type fileNoteReader struct {
+type fileNoteManager struct {
 	notesRootDir string
 }
 
-func NewNoteReader(rootDir string) NoteReader {
-	return &fileNoteReader{notesRootDir: rootDir}
+func NewNoteManager(rootDir string) NoteManager {
+	return &fileNoteManager{notesRootDir: rootDir}
 }
 
-func (nr *fileNoteReader) ReadNote(noteName string) (*notes.Note, error) {
-	noteFileName := nr.formatNoteFileName(noteName)
-	noteFilePath := nr.notesRootDir + noteFileName
+func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
+	noteFileName := mgr.formatNoteFileName(noteName)
+	noteFilePath := mgr.notesRootDir + noteFileName
 
 	noteFile, err := os.ReadFile(noteFilePath)
 	if err != nil {
@@ -35,6 +35,6 @@ func (nr *fileNoteReader) ReadNote(noteName string) (*notes.Note, error) {
 	return &note, nil
 }
 
-func (nr *fileNoteReader) formatNoteFileName(noteName string) string {
+func (nr *fileNoteManager) formatNoteFileName(noteName string) string {
 	return noteName + ".md"
 }

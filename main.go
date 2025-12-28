@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"terminal-notes/reader"
+	"terminal-notes/notemgr"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 
 func main() {
 
-	noteReader := reader.NewNoteReader(NOTES_DIR)
+	noteManager := notemgr.NewNoteManager(NOTES_DIR)
 
 	flag.Parse()
 
@@ -26,7 +26,7 @@ func main() {
 
 	noteName := args[0]
 
-	note, err := noteReader.ReadNote(noteName)
+	note, err := noteManager.ReadNote(noteName)
 	if err != nil {
 		fmt.Printf("Error opening note for %s: %s\n", noteName, err.Error())
 		return
