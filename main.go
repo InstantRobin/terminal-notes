@@ -80,7 +80,7 @@ func getNoteNameFromArgs(args []string) (string, error) {
 	if len(args) <= 0 || len(args) > MAX_ARGS {
 		return "", fmt.Errorf("Invalid number of args, max is %d, min is 0\n", MAX_ARGS)
 	}
-	noteName := args[0]
+	noteName := strings.ToLower(args[0])
 	return noteName, nil
 }
 
