@@ -14,8 +14,8 @@ const fileTypeSuffix = ".md"
 var ErrInvalidFileType = errors.New("file is not a supported note file type")
 
 type NoteManager interface {
-	ReadNote(noteName string) (*notes.Note, error)
-	ReadNotesTitleContains(noteName string) ([]notes.Note, error)
+	GetNote(noteName string) (*notes.Note, error)
+	GetNotes(noteNameSubstr string) ([]notes.Note, error)
 	EditNote(noteName string) error
 }
 
@@ -28,7 +28,7 @@ func NewNoteManager(rootDir string) NoteManager {
 	return &fileNoteManager{notesRootDir: rootDir, fileTypeSuffix: fileTypeSuffix}
 }
 
-func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
+func (mgr *fileNoteManager) GetNote(noteName string) (*notes.Note, error) {
 	noteFilePath := mgr.getNoteFilePath(noteName)
 
 	noteFile, err := os.ReadFile(noteFilePath)
@@ -44,7 +44,7 @@ func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
 	return &note, nil
 }
 
-func (mgr *fileNoteManager) ReadNotesTitleContains(noteName string) ([]notes.Note, error) {
+func (mgr *fileNoteManager) GetNotes(noteNameSubstr string) ([]notes.Note, error) {
 	notesDir, err := os.ReadDir(mgr.notesRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open notes directory at %s: %s", mgr.notesRootDir, err.Error())
@@ -52,7 +52,7 @@ func (mgr *fileNoteManager) ReadNotesTitleContains(noteName string) ([]notes.Not
 
 	var noteFileNames []string
 	for _, entry := range notesDir {
-		if !entry.IsDir() && strings.Contains(entry.Name(), noteName) {
+		if !entry.IsDir() && strings.Contains(entry.Name(), noteNameSubstr) {
 			noteName, err := mgr.getNoteNameFromFileName(entry.Name())
 			if err != nil {
 				if errors.Is(err, ErrInvalidFileType) {
@@ -66,7 +66,7 @@ func (mgr *fileNoteManager) ReadNotesTitleContains(noteName string) ([]notes.Not
 
 	var notes []notes.Note
 	for _, noteFileName := range noteFileNames {
-		note, err := mgr.ReadNote(noteFileName)
+		note, err := mgr.GetNote(noteFileName)
 		if err != nil {
 			return nil, fmt.Errorf("error opening note %s: %s", noteFileName, err.Error())
 		}

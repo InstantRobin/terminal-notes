@@ -38,7 +38,7 @@ func main() {
 		}
 		fmt.Printf("Updated note %s\n", noteName)
 	} else if all != nil && *all {
-		noteSlice, err := noteManager.ReadNotesTitleContains("")
+		noteSlice, err := noteManager.GetNotes("")
 		if err != nil {
 			fmt.Printf("Error fetching all notes: %s", err.Error())
 			return
@@ -57,7 +57,7 @@ func main() {
 			fmt.Printf(err.Error())
 			return
 		}
-		note, err := noteManager.ReadNote(noteName)
+		note, err := noteManager.GetNote(noteName)
 		if err != nil {
 			fmt.Printf("Error opening note %s: %s\n", noteName, err.Error())
 			return
