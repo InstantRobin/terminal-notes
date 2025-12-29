@@ -17,11 +17,10 @@ func main() {
 
 	noteManager := notemgr.NewNoteManager(NOTES_DIR)
 
-	edit := flag.Bool("e", false, "Edit target note")
+	edit := flag.Bool("e", false, "Edit or Create target note")
 	all := flag.Bool("a", false, "Return all Notes")
 
 	flag.Parse()
-
 	args := flag.Args()
 
 	if err := verifyArgsAndFlags(args, edit, all); err != nil {
@@ -30,49 +29,11 @@ func main() {
 	}
 
 	if edit != nil && *edit {
-		noteName, err := getNoteNameFromArgs(args)
-		if err != nil {
-			fmt.Printf(err.Error())
-			return
-		}
-
-		err = noteManager.EditNote(noteName)
-		if err != nil {
-			fmt.Printf("Error editing note %s: %s\n", noteName, err.Error())
-			return
-		}
-		fmt.Printf("Updated note %s\n", noteName)
+		editNote(noteManager, args)
 	} else if all != nil && *all {
-		noteSlice, err := noteManager.GetNotes("")
-		if err != nil {
-			fmt.Printf("Error fetching all notes: %s", err.Error())
-			return
-		}
-		if noteSlice == nil {
-			fmt.Printf("Error fetching all notes: result is nil")
-			return
-		}
-
-		notes.SortNotes(noteSlice)
-		for _, note := range noteSlice {
-			printFormattedNote(note)
-		}
+		fetchAndPrintAllNotes(noteManager)
 	} else {
-		noteName, err := getNoteNameFromArgs(args)
-		if err != nil {
-			fmt.Printf(err.Error())
-			return
-		}
-
-		note, err := noteManager.GetNote(noteName)
-		if err != nil {
-			fmt.Printf("Error opening note %s: %s\n", noteName, err.Error())
-			return
-		}
-		if note == nil {
-			fmt.Printf("Error opening note %s: note is nil", noteName)
-		}
-		printFormattedNote(*note)
+		fetchAndPrintNote(noteManager, args)
 	}
 }
 
@@ -94,6 +55,56 @@ func getNoteNameFromArgs(args []string) (string, error) {
 	}
 	noteName := strings.ToLower(args[0])
 	return noteName, nil
+}
+
+func editNote(noteManager notemgr.NoteManager, args []string) {
+	noteName, err := getNoteNameFromArgs(args)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	err = noteManager.EditNote(noteName)
+	if err != nil {
+		fmt.Printf("Error editing note %s: %s\n", noteName, err.Error())
+		return
+	}
+	fmt.Printf("Updated note %s\n", noteName)
+}
+
+func fetchAndPrintAllNotes(noteManager notemgr.NoteManager) {
+	noteSlice, err := noteManager.GetNotes("")
+	if err != nil {
+		fmt.Printf("Error fetching all notes: %s", err.Error())
+		return
+	}
+	if noteSlice == nil {
+		fmt.Printf("Error fetching all notes: result is nil")
+		return
+	}
+
+	notes.SortNotes(noteSlice)
+	for _, note := range noteSlice {
+		printFormattedNote(note)
+	}
+}
+
+func fetchAndPrintNote(noteManager notemgr.NoteManager, args []string) {
+	noteName, err := getNoteNameFromArgs(args)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	note, err := noteManager.GetNote(noteName)
+	if err != nil {
+		fmt.Printf("Error opening note %s: %s\n", noteName, err.Error())
+		return
+	}
+	if note == nil {
+		fmt.Printf("Error opening note %s: note is nil", noteName)
+	}
+	printFormattedNote(*note)
 }
 
 func printFormattedNote(note notes.Note) {
