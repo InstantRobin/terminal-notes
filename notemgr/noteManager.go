@@ -1,23 +1,31 @@
 package notemgr
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"terminal-notes/notes"
 )
 
+const fileTypeSuffix = ".md"
+
+var ErrInvalidFileType = errors.New("file is not a supported note file type")
+
 type NoteManager interface {
 	ReadNote(noteName string) (*notes.Note, error)
+	ReadNotesTitleContains(noteName string) ([]notes.Note, error)
 	EditNote(noteName string) error
 }
 
 type fileNoteManager struct {
-	notesRootDir string
+	notesRootDir   string
+	fileTypeSuffix string
 }
 
 func NewNoteManager(rootDir string) NoteManager {
-	return &fileNoteManager{notesRootDir: rootDir}
+	return &fileNoteManager{notesRootDir: rootDir, fileTypeSuffix: fileTypeSuffix}
 }
 
 func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
@@ -36,15 +44,51 @@ func (mgr *fileNoteManager) ReadNote(noteName string) (*notes.Note, error) {
 	return &note, nil
 }
 
+func (mgr *fileNoteManager) ReadNotesTitleContains(noteName string) ([]notes.Note, error) {
+	notesDir, err := os.ReadDir(mgr.notesRootDir)
+	if err != nil {
+		return nil, fmt.Errorf("unable to open notes directory at %s: %s", mgr.notesRootDir, err.Error())
+	}
+
+	var noteFileNames []string
+	for _, entry := range notesDir {
+		if !entry.IsDir() && strings.Contains(entry.Name(), noteName) {
+			noteName, err := mgr.getNoteNameFromFileName(entry.Name())
+			if err != nil {
+				if errors.Is(err, ErrInvalidFileType) {
+					continue
+				}
+				return nil, fmt.Errorf("error getting note name from file name for file %s: %s", entry.Name(), err.Error())
+			}
+			noteFileNames = append(noteFileNames, noteName)
+		}
+	}
+
+	var notes []notes.Note
+	for _, noteFileName := range noteFileNames {
+		note, err := mgr.ReadNote(noteFileName)
+		if err != nil {
+			return nil, fmt.Errorf("error opening note %s: %s", noteFileName, err.Error())
+		}
+		if note == nil {
+			// Should never happen
+			return nil, fmt.Errorf("eil note found for note %s", noteFileName)
+		}
+		notes = append(notes, *note)
+	}
+	return notes, nil
+}
+
 func (mgr *fileNoteManager) EditNote(noteName string) error {
 	noteFilePath := mgr.getNoteFilePath(noteName)
 
+	// TODO: Make this more secure (See os.root maybe?)
 	cmd := exec.Command("vim", noteFilePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Unable to edit file %s: %s", noteFilePath, err)
+		return fmt.Errorf("unable to edit file %s: %s", noteFilePath, err)
 	}
 	return nil
 }
@@ -52,4 +96,12 @@ func (mgr *fileNoteManager) EditNote(noteName string) error {
 func (mgr *fileNoteManager) getNoteFilePath(noteName string) string {
 	noteFileName := noteName + ".md"
 	return mgr.notesRootDir + noteFileName
+}
+
+func (mgr *fileNoteManager) getNoteNameFromFileName(fileName string) (string, error) {
+	noteName, found := strings.CutSuffix(fileName, mgr.fileTypeSuffix)
+	if !found {
+		return "", ErrInvalidFileType
+	}
+	return noteName, nil
 }
