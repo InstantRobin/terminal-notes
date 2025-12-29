@@ -24,6 +24,11 @@ func main() {
 
 	args := flag.Args()
 
+	if err := verifyArgsAndFlags(args, edit, all); err != nil {
+		fmt.Printf("Invalid command: %s\n", err.Error())
+		return
+	}
+
 	if edit != nil && *edit {
 		noteName, err := getNoteNameFromArgs(args)
 		if err != nil {
@@ -47,6 +52,7 @@ func main() {
 			fmt.Printf("Error fetching all notes: result is nil")
 			return
 		}
+
 		notes.SortNotes(noteSlice)
 		for _, note := range noteSlice {
 			printFormattedNote(note)
@@ -57,6 +63,7 @@ func main() {
 			fmt.Printf(err.Error())
 			return
 		}
+
 		note, err := noteManager.GetNote(noteName)
 		if err != nil {
 			fmt.Printf("Error opening note %s: %s\n", noteName, err.Error())
@@ -69,9 +76,14 @@ func main() {
 	}
 }
 
-func verifyFlags(args []string, edit, all *bool) error {
+func verifyArgsAndFlags(args []string, edit, all *bool) error {
 	if edit != nil && all != nil && *edit && *all {
 		return fmt.Errorf("incompatible flags '-e' and '-a")
+	}
+	if all != nil && *all {
+		if len(args) != 0 {
+			return fmt.Errorf("invalid number of args, must be zero")
+		}
 	}
 	return nil
 }
@@ -82,13 +94,6 @@ func getNoteNameFromArgs(args []string) (string, error) {
 	}
 	noteName := strings.ToLower(args[0])
 	return noteName, nil
-}
-
-func verifyArgsNil(args []string) error {
-	if len(args) != 0 {
-		return fmt.Errorf("Invalid number of args, must be zero")
-	}
-	return nil
 }
 
 func printFormattedNote(note notes.Note) {
