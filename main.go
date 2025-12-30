@@ -3,25 +3,28 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 	"strings"
 	"terminal-notes/notemgr"
 	"terminal-notes/notes"
 )
 
 const (
-	NOTES_DIR = "./note_files/"
-	MAX_ARGS  = 1
+	NOTES_DIR      = "./note_files/"
+	MAX_ARGS       = 1
+	DEFAULT_EDITOR = "vi"
 )
 
 func main() {
-
-	noteManager := notemgr.NewNoteManager(NOTES_DIR)
 
 	edit := flag.Bool("e", false, "Edit or Create target note")
 	all := flag.Bool("a", false, "Return all Notes")
 
 	flag.Parse()
 	args := flag.Args()
+
+	editor := getEditorFromEnvVars()
+	noteManager := notemgr.NewNoteManager(NOTES_DIR, editor)
 
 	if err := verifyArgsAndFlags(args, edit, all); err != nil {
 		fmt.Printf("Invalid command: %s\n", err.Error())
@@ -112,4 +115,17 @@ func printFormattedNote(note notes.Note) {
 	for line := range strings.SplitSeq(note.Contents, "\n") {
 		fmt.Println("\t" + line)
 	}
+}
+
+func getEditorFromEnvVars() string {
+	visualEnv := os.Getenv("VISUAL")
+	editorEnv := os.Getenv("EDITOR")
+	editorCommand := DEFAULT_EDITOR
+
+	if visualEnv != "" {
+		editorCommand = visualEnv
+	} else if editorEnv != "" {
+		editorCommand = editorEnv
+	}
+	return editorCommand
 }

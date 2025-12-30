@@ -22,10 +22,15 @@ type NoteManager interface {
 type fileNoteManager struct {
 	notesRootDir   string
 	fileTypeSuffix string
+	editor         string
 }
 
-func NewNoteManager(rootDir string) NoteManager {
-	return &fileNoteManager{notesRootDir: rootDir, fileTypeSuffix: fileTypeSuffix}
+func NewNoteManager(rootDir, editor string) NoteManager {
+	return &fileNoteManager{
+		notesRootDir:   rootDir,
+		fileTypeSuffix: fileTypeSuffix,
+		editor:         editor,
+	}
 }
 
 func (mgr *fileNoteManager) GetNote(noteName string) (*notes.Note, error) {
@@ -83,7 +88,7 @@ func (mgr *fileNoteManager) EditNote(noteName string) error {
 	noteFilePath := mgr.getNoteFilePath(noteName)
 
 	// TODO: Make this more secure (See os.root maybe?)
-	cmd := exec.Command("vim", noteFilePath)
+	cmd := exec.Command(mgr.editor, noteFilePath)
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	err := cmd.Run()
