@@ -167,7 +167,8 @@ func getNote(noteManager notemgr.NoteManager, args []string) {
 
 func printFormattedNote(note notes.Note) {
 	fmt.Println(note.Name)
-	for line := range strings.SplitSeq(note.Contents, "\n") {
+	contents := strings.TrimRight(note.Contents, "\n")
+	for line := range strings.SplitSeq(contents, "\n") {
 		fmt.Println("    " + line)
 	}
 }
