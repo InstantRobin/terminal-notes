@@ -17,6 +17,7 @@ type NoteManager interface {
 	GetNote(noteName string) (*notes.Note, error)
 	GetNotes(noteNameSubstr string) ([]notes.Note, error)
 	EditNote(noteName string) error
+	DeleteNote(noteName string) error
 }
 
 type fileNoteManager struct {
@@ -104,6 +105,16 @@ func (mgr *fileNoteManager) EditNote(noteName string) error {
 	err := cmd.Run()
 	if err != nil {
 		return fmt.Errorf("unable to edit file %s: %s", noteFilePath, err)
+	}
+	return nil
+}
+
+func (mgr *fileNoteManager) DeleteNote(noteName string) error {
+	noteFilePath := mgr.getNoteFilePath(noteName)
+
+	err := os.Remove(noteFilePath)
+	if err != nil {
+		return fmt.Errorf("unable to delete file %s: %s", noteFilePath, err)
 	}
 	return nil
 }

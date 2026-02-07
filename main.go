@@ -26,6 +26,7 @@ func main() {
 	edit := flag.Bool("e", false, "Edit or Create target note")
 	all := flag.Bool("a", false, "Return all Notes")
 	search := flag.Bool("s", false, "Search Note Titles")
+	delete := flag.Bool("d", false, "Delete Note")
 
 	flag.Parse()
 	args := flag.Args()
@@ -37,7 +38,8 @@ func main() {
 		return
 	}
 
-	if err = veryifyFlags(edit, all, search); err != nil {
+	flags := []*bool{edit, all, search, delete}
+	if err = veryifyFlags(flags); err != nil {
 		fmt.Printf("Invalid command: %s\n", err.Error())
 		return
 	}
@@ -48,6 +50,8 @@ func main() {
 		getAllNotes(noteManager)
 	} else if search != nil && *search {
 		searchNotes(noteManager, args)
+	} else if delete != nil && *delete {
+		deleteNote(noteManager, args)
 	} else {
 		getNote(noteManager, args)
 	}
@@ -61,8 +65,7 @@ func getNotesDir() (string, error) {
 	return usrHomeDir + "/" + NOTES_PATH, nil
 }
 
-func veryifyFlags(edit, all, search *bool) error {
-	flags := []*bool{edit, all, search}
+func veryifyFlags(flags []*bool) error {
 	flagSet := false
 	for _, flag := range flags {
 		if flag == nil || *flag == false {
@@ -127,6 +130,21 @@ func searchAndPrintNotes(noteManager notemgr.NoteManager, query string) {
 	for _, note := range noteSlice {
 		printFormattedNote(note)
 	}
+}
+
+func deleteNote(noteManager notemgr.NoteManager, args []string) {
+	noteName, err := getNoteNameFromArgs(args)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+
+	err = noteManager.DeleteNote(noteName)
+	if err != nil {
+		fmt.Printf("Error deleting note %s: %s\n", noteName, err.Error())
+		return
+	}
+	fmt.Printf("Deleted note %s\n", noteName)
 }
 
 func getNote(noteManager notemgr.NoteManager, args []string) {
