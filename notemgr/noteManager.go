@@ -65,7 +65,7 @@ func (mgr *fileNoteManager) GetNotes(noteNameSubstr string) ([]notes.Note, error
 		return nil, fmt.Errorf("unable to open notes directory at %s: %s", mgr.notesRootDir, err.Error())
 	}
 
-	var noteFileNames []string
+	noteFileNames := []string{}
 	for _, entry := range notesDir {
 		if !entry.IsDir() && strings.Contains(entry.Name(), noteNameSubstr) {
 			noteName, err := mgr.getNoteNameFromFileName(entry.Name())
@@ -79,7 +79,7 @@ func (mgr *fileNoteManager) GetNotes(noteNameSubstr string) ([]notes.Note, error
 		}
 	}
 
-	var notes []notes.Note
+	notes := []notes.Note{}
 	for _, noteFileName := range noteFileNames {
 		note, err := mgr.GetNote(noteFileName)
 		if err != nil {
