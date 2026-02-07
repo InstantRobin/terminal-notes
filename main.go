@@ -25,6 +25,7 @@ func main() {
 
 	edit := flag.Bool("e", false, "Edit or Create target note")
 	all := flag.Bool("a", false, "Return all Notes")
+	search := flag.Bool("s", false, "Search Note Titles")
 
 	flag.Parse()
 	args := flag.Args()
@@ -36,7 +37,7 @@ func main() {
 		return
 	}
 
-	if err = verifyArgsAndFlags(args, edit, all); err != nil {
+	if err = veryifyFlags(edit, all, search); err != nil {
 		fmt.Printf("Invalid command: %s\n", err.Error())
 		return
 	}
@@ -44,9 +45,11 @@ func main() {
 	if edit != nil && *edit {
 		editNote(noteManager, args)
 	} else if all != nil && *all {
-		fetchAndPrintAllNotes(noteManager)
+		getAllNotes(noteManager)
+	} else if search != nil && *search {
+		searchNotes(noteManager, args)
 	} else {
-		fetchAndPrintNote(noteManager, args)
+		getNote(noteManager, args)
 	}
 }
 
@@ -58,14 +61,17 @@ func getNotesDir() (string, error) {
 	return usrHomeDir + "/" + NOTES_PATH, nil
 }
 
-func verifyArgsAndFlags(args []string, edit, all *bool) error {
-	if edit != nil && all != nil && *edit && *all {
-		return fmt.Errorf("incompatible flags '-e' and '-a")
-	}
-	if all != nil && *all {
-		if len(args) != 0 {
-			return fmt.Errorf("invalid number of args, must be zero")
+func veryifyFlags(edit, all, search *bool) error {
+	flags := []*bool{edit, all, search}
+	flagSet := false
+	for _, flag := range flags {
+		if flag == nil || *flag == false {
+			continue
 		}
+		if flagSet {
+			return fmt.Errorf("only one flag can be set at a time")
+		}
+		flagSet = true
 	}
 	return nil
 }
@@ -93,8 +99,21 @@ func editNote(noteManager notemgr.NoteManager, args []string) {
 	fmt.Printf("Updated note %s\n", noteName)
 }
 
-func fetchAndPrintAllNotes(noteManager notemgr.NoteManager) {
-	noteSlice, err := noteManager.GetNotes("")
+func getAllNotes(noteManager notemgr.NoteManager) {
+	searchAndPrintNotes(noteManager, "")
+}
+
+func searchNotes(noteManager notemgr.NoteManager, args []string) {
+	noteQuery, err := getNoteNameFromArgs(args)
+	if err != nil {
+		fmt.Printf(err.Error())
+		return
+	}
+	searchAndPrintNotes(noteManager, noteQuery)
+}
+
+func searchAndPrintNotes(noteManager notemgr.NoteManager, query string) {
+	noteSlice, err := noteManager.GetNotes(query)
 	if err != nil {
 		fmt.Printf("Error fetching all notes: %s\n", err.Error())
 		return
@@ -110,7 +129,7 @@ func fetchAndPrintAllNotes(noteManager notemgr.NoteManager) {
 	}
 }
 
-func fetchAndPrintNote(noteManager notemgr.NoteManager, args []string) {
+func getNote(noteManager notemgr.NoteManager, args []string) {
 	noteName, err := getNoteNameFromArgs(args)
 	if err != nil {
 		fmt.Printf(err.Error())
