@@ -25,12 +25,22 @@ type fileNoteManager struct {
 	editor         string
 }
 
-func NewNoteManager(rootDir, editor string) NoteManager {
+func NewNoteManager(rootDir, editor string) (NoteManager, error) {
+
+	err := os.MkdirAll(rootDir, 0700)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to open directory %s: %w", rootDir, err)
+	}
+
+	if rootDir[len(rootDir)-1] != '/' {
+		rootDir = rootDir + "/"
+	}
+
 	return &fileNoteManager{
 		notesRootDir:   rootDir,
 		fileTypeSuffix: fileTypeSuffix,
 		editor:         editor,
-	}
+	}, nil
 }
 
 func (mgr *fileNoteManager) GetNote(noteName string) (*notes.Note, error) {

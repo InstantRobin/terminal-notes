@@ -10,12 +10,18 @@ import (
 )
 
 const (
-	NOTES_DIR      = "./note_files/"
+	NOTES_PATH     = ".local/share/terminal-notes"
 	MAX_ARGS       = 1
 	DEFAULT_EDITOR = "vi"
 )
 
 func main() {
+
+	notesDir, err := getNotesDir()
+	if err != nil {
+		fmt.Printf("Error finding notes directory: %s", err.Error())
+		return
+	}
 
 	edit := flag.Bool("e", false, "Edit or Create target note")
 	all := flag.Bool("a", false, "Return all Notes")
@@ -24,9 +30,13 @@ func main() {
 	args := flag.Args()
 
 	editor := getEditorFromEnvVars()
-	noteManager := notemgr.NewNoteManager(NOTES_DIR, editor)
+	noteManager, err := notemgr.NewNoteManager(notesDir, editor)
+	if err != nil {
+		fmt.Printf("Failed to initialize notes: %s\n", err.Error())
+		return
+	}
 
-	if err := verifyArgsAndFlags(args, edit, all); err != nil {
+	if err = verifyArgsAndFlags(args, edit, all); err != nil {
 		fmt.Printf("Invalid command: %s\n", err.Error())
 		return
 	}
@@ -38,6 +48,14 @@ func main() {
 	} else {
 		fetchAndPrintNote(noteManager, args)
 	}
+}
+
+func getNotesDir() (string, error) {
+	usrHomeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "", fmt.Errorf("Unable to get user home: %w", err)
+	}
+	return usrHomeDir + "/" + NOTES_PATH, nil
 }
 
 func verifyArgsAndFlags(args []string, edit, all *bool) error {
