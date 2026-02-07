@@ -96,11 +96,11 @@ func editNote(noteManager notemgr.NoteManager, args []string) {
 func fetchAndPrintAllNotes(noteManager notemgr.NoteManager) {
 	noteSlice, err := noteManager.GetNotes("")
 	if err != nil {
-		fmt.Printf("Error fetching all notes: %s", err.Error())
+		fmt.Printf("Error fetching all notes: %s\n", err.Error())
 		return
 	}
 	if noteSlice == nil {
-		fmt.Printf("Error fetching all notes: result is nil")
+		fmt.Printf("Error fetching all notes: result is nil\n")
 		return
 	}
 
@@ -123,7 +123,7 @@ func fetchAndPrintNote(noteManager notemgr.NoteManager, args []string) {
 		return
 	}
 	if note == nil {
-		fmt.Printf("Error opening note %s: note is nil", noteName)
+		fmt.Printf("Error opening note %s: note is nil\n", noteName)
 	}
 	printFormattedNote(*note)
 }
@@ -131,7 +131,7 @@ func fetchAndPrintNote(noteManager notemgr.NoteManager, args []string) {
 func printFormattedNote(note notes.Note) {
 	fmt.Println(note.Name)
 	for line := range strings.SplitSeq(note.Contents, "\n") {
-		fmt.Println("\t" + line)
+		fmt.Println("    " + line)
 	}
 }
 
