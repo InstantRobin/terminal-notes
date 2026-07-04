@@ -93,7 +93,7 @@ func getNoteNameFromArgs(args []string) (string, error) {
 func editNote(noteManager notemgr.NoteManager, args []string) {
 	noteName, err := getNoteNameFromArgs(args)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Printf("%s", err.Error())
 		return
 	}
 
@@ -112,7 +112,7 @@ func getAllNotes(noteManager notemgr.NoteManager) {
 func searchNotes(noteManager notemgr.NoteManager, args []string) {
 	noteQuery, err := getNoteNameFromArgs(args)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Printf("%s", err.Error())
 		return
 	}
 	searchAndPrintNotes(noteManager, noteQuery)
@@ -149,7 +149,7 @@ func listNotes(noteManager notemgr.NoteManager) {
 func deleteNote(noteManager notemgr.NoteManager, args []string) {
 	noteName, err := getNoteNameFromArgs(args)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Printf("%s", err.Error())
 		return
 	}
 
@@ -164,7 +164,7 @@ func deleteNote(noteManager notemgr.NoteManager, args []string) {
 func getNote(noteManager notemgr.NoteManager, args []string) {
 	noteName, err := getNoteNameFromArgs(args)
 	if err != nil {
-		fmt.Printf(err.Error())
+		fmt.Printf("%s", err.Error())
 		return
 	}
 
