@@ -16,6 +16,7 @@ var ErrInvalidFileType = errors.New("file is not a supported note file type")
 type NoteManager interface {
 	GetNote(noteName string) (*notes.Note, error)
 	GetNotes(noteNameSubstr string) ([]notes.Note, error)
+	ListNotes() ([]string, error)
 	EditNote(noteName string) error
 	DeleteNote(noteName string) error
 }
@@ -61,6 +62,31 @@ func (mgr *fileNoteManager) GetNote(noteName string) (*notes.Note, error) {
 }
 
 func (mgr *fileNoteManager) GetNotes(noteNameSubstr string) ([]notes.Note, error) {
+	noteFileNames, err := mgr.getNoteFileNames(noteNameSubstr)
+	if err != nil {
+		return nil, err
+	}
+
+	notes := []notes.Note{}
+	for _, noteFileName := range noteFileNames {
+		note, err := mgr.GetNote(noteFileName)
+		if err != nil {
+			return nil, fmt.Errorf("error opening note %s: %s", noteFileName, err.Error())
+		}
+		if note == nil {
+			// Should never happen
+			return nil, fmt.Errorf("eil note found for note %s", noteFileName)
+		}
+		notes = append(notes, *note)
+	}
+	return notes, nil
+}
+
+func (mgr *fileNoteManager) ListNotes() ([]string, error) {
+	return mgr.getNoteFileNames("")
+}
+
+func (mgr *fileNoteManager) getNoteFileNames(noteNameSubstr string) ([]string, error) {
 	notesDir, err := os.ReadDir(mgr.notesRootDir)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open notes directory at %s: %s", mgr.notesRootDir, err.Error())
@@ -79,20 +105,7 @@ func (mgr *fileNoteManager) GetNotes(noteNameSubstr string) ([]notes.Note, error
 			noteFileNames = append(noteFileNames, noteName)
 		}
 	}
-
-	notes := []notes.Note{}
-	for _, noteFileName := range noteFileNames {
-		note, err := mgr.GetNote(noteFileName)
-		if err != nil {
-			return nil, fmt.Errorf("error opening note %s: %s", noteFileName, err.Error())
-		}
-		if note == nil {
-			// Should never happen
-			return nil, fmt.Errorf("eil note found for note %s", noteFileName)
-		}
-		notes = append(notes, *note)
-	}
-	return notes, nil
+	return noteFileNames, nil
 }
 
 func (mgr *fileNoteManager) EditNote(noteName string) error {

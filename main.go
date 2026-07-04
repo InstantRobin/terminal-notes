@@ -25,6 +25,7 @@ func main() {
 
 	edit := flag.Bool("e", false, "Edit or Create target note")
 	all := flag.Bool("a", false, "Return all Notes")
+	list := flag.Bool("l", false, "List Note Titles")
 	search := flag.Bool("s", false, "Search Note Titles")
 	delete := flag.Bool("d", false, "Delete Note")
 
@@ -38,7 +39,7 @@ func main() {
 		return
 	}
 
-	flags := []*bool{edit, all, search, delete}
+	flags := []*bool{edit, all, list, search, delete}
 	if err = veryifyFlags(flags); err != nil {
 		fmt.Printf("Invalid command: %s\n", err.Error())
 		return
@@ -48,6 +49,8 @@ func main() {
 		editNote(noteManager, args)
 	} else if all != nil && *all {
 		getAllNotes(noteManager)
+	} else if list != nil && *list {
+		listNotes(noteManager)
 	} else if search != nil && *search {
 		searchNotes(noteManager, args)
 	} else if delete != nil && *delete {
@@ -129,6 +132,17 @@ func searchAndPrintNotes(noteManager notemgr.NoteManager, query string) {
 	notes.SortNotes(noteSlice)
 	for _, note := range noteSlice {
 		printFormattedNote(note)
+	}
+}
+
+func listNotes(noteManager notemgr.NoteManager) {
+	noteNames, err := noteManager.ListNotes()
+	if err != nil {
+		fmt.Printf("Error listing notesL %s\n", err.Error())
+		return
+	}
+	for _, note := range noteNames {
+		fmt.Printf("%s\n", note)
 	}
 }
 
