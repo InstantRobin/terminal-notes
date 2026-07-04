@@ -50,9 +50,21 @@ tnotes
 Fetches all notes, sorted alphabetically.
 
 ```
-~$ terminal-notes tnotes
+~$ terminal-notes -a
+noted
+    Past tense for of verb "to note" 
 tnotes
     note manager
+```
+
+### `terminal-notes -l`
+
+Fetches names of all notes, sorted alphabetically.
+
+```
+~$ terminal-notes -l
+noted
+tnotes
 ```
 
 ### `terminal-notes -s {query}`
