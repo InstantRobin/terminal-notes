@@ -13,6 +13,10 @@ Requires Go version 1.25 or greater.
 
 Build with `go build -o terminal-notes`
 
+## Testing
+
+Test with `go test ./...`
+
 ## Installation
 
 Install with `sudo ./install.sh`
